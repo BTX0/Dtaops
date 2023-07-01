@@ -17,6 +17,8 @@ type FormData struct {
 	Team     string `json:"team"`
 	LeaveType  string `json:"leave_type"`
 	LeaveDate   string `json:"leave_date"`
+	LeaveDuration float64 `json:"leave_duration"`
+
 	}
 type ApprovedData struct {
 	LeaveId string `json:"leave_id"`
@@ -100,7 +102,8 @@ func createTableIfNotExists(db *sql.DB) {
 		manager_name TEXT NOT NULL,
 		team_name TEXT NOT NULL,
 		leave_type TEXT NOT NULL,
-		leave_dates TEXT NOT NULL
+		leave_dates DATE NOT NULL,
+		leave_duration float(1) NOT NULL
 	)`)
 	if err != nil {
 		log.Fatal("Failed to create table:", err)
@@ -108,8 +111,8 @@ func createTableIfNotExists(db *sql.DB) {
 }
 
 func insertFormData(db *sql.DB, formData FormData) error {
-	_, err := db.Exec("INSERT INTO employee_leave_data ( employee_name, manager_name,  team_name,leave_type, leave_dates) VALUES ($1, $2, $3, $4, $5)",
-		formData.Name, formData.Manager, formData.Team, formData.LeaveType, formData.LeaveDate)
+	_, err := db.Exec("INSERT INTO employee_leave_data ( employee_name, manager_name,  team_name,leave_type, leave_dates, leave_duration) VALUES ($1, $2, $3, $4, $5, $6)",
+		formData.Name, formData.Manager, formData.Team, formData.LeaveType, formData.LeaveDate, formData.LeaveDuration)
 	if err != nil {
 		log.Println("Failed to insert form data:", err)
 		return err
@@ -117,7 +120,7 @@ func insertFormData(db *sql.DB, formData FormData) error {
 	return nil
 }
 func getUsers(db *sql.DB) ([]FormData, error) {
-	rows, err := db.Query("SELECT id, employee_name, manager_name, team_name, leave_type,  leave_dates FROM employee_leave_data")
+	rows, err := db.Query("SELECT id, employee_name, manager_name, team_name, leave_type,  leave_dates, leave_duration FROM employee_leave_data")
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +130,7 @@ func getUsers(db *sql.DB) ([]FormData, error) {
 
 	for rows.Next() {
 		var user FormData
-		err := rows.Scan(&user.Id, &user.Name, &user.Manager,&user.Team, &user.LeaveType, &user.LeaveDate)
+		err := rows.Scan(&user.Id, &user.Name, &user.Manager,&user.Team, &user.LeaveType, &user.LeaveDate, &user.LeaveDuration)
 		if err != nil {
 			return nil, err
 		}
